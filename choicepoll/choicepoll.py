@@ -17,7 +17,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 region_name = 'us-west-2'
 queue_name = 'player-choices'
-max_queue_messages = 10
+max_queue_messages = 1
 message_bodies = []
 aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
 aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -32,6 +32,7 @@ mongoClient = MongoClient("mongodb://{}:{}@ds029476.mlab.com:29476/team-awesome"
 while True:
     messages_to_delete = []
     for message in queue.receive_messages(MaxNumberOfMessages=max_queue_messages):
+        print ('Read queue at ', datetime.datetime.utcnow())
         # process message body
         messageBody = str.lower(message.body)
         body = json.loads(messageBody)
@@ -56,7 +57,7 @@ while True:
             print ("mongo result: ", result.inserted_id)
         except:
             print ('There was an error posting to Mongo')
-            
+
     # if you don't receive any notifications the
     # messages_to_delete list will be empty
     if len(messages_to_delete) == 0:
