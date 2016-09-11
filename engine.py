@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""
-[module name here]
-~~~~~~~~~~~~~~~~~
-
-[Description here]
-
-"""
 import boto3
 import os
 import json
@@ -17,33 +10,16 @@ app = Flask(__name__)
 
 sns_client = boto3.client('sns', region_name='us-west-2')
 
-json_publish = {
-  "gameID": "1234",
-  "situationID": "1234",
-  "playerScores": [
-    {
-      "playerID": "1234",
-      "score": "29"
-    },
-    {
-      "playerID": "5678",
-      "score": "56"
-    }
-  ]
-}
-
-
 @app.route('/result', methods=['POST'])
 def process_result():
     req = request.get_json(force=True)
     game_id = req['gameID']
     sit_id = req['sitID']
-    print game_id, sit_id
-    # situation_result = retrieve_situation_result(game_id, sit_id)
-    # situation_player_choices = retrieve_player_choices(game_id, sit_id)
-    # scores = calculate_scores(situation_result, situation_player_choices)
-    # put_results(sns_client, scores)
-    return '', 201
+    situation_result = retrieve_situation_result(game_id, sit_id)
+    situation_player_choices = retrieve_player_choices(game_id, sit_id)
+    scores = calculate_scores(situation_result, situation_player_choices)
+    put_results(sns_client, scores)
+    return '', 200
 
 
 def retrieve_situation_result(game_id, sit_id):
@@ -64,8 +40,21 @@ def retrieve_player_choices(game_id, sit_id):
     return cursor
 
 
-def calculate_scores():
-    pass
+def calculate_scores(situation_result, situation_player_choices):
+    score_json = {"gameID": situation_result["gameID"], "situationID": situation_result["situationID"], "playerScores": []}
+    for player_choice in situation_player_choices:
+        player_choice = json.loads(player_choice)
+        player_json = {"playerID": player_choice["playerID"]}
+        player_score = 0
+        if player_choice["choice"]["action"] == situation_result["result"]["action"]:
+            player_score += 1
+        if player_choice["choice"]["distance"] == situation_result["result"]["distance"]:
+            player_score += 1
+        if player_choice["choice"]["position"] == situation_result["result"]["position"]:
+            player_score += 1
+        player_json["score"] = player_score
+        score_json["playerScores"].append(player_json)
+    return score_json
 
 
 def put_results(client, data):
@@ -74,7 +63,6 @@ def put_results(client, data):
         Message=json.dumps(data),
         MessageStructure='string',
     )
-    print response
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', '5000')
+    app.run('0.0.0.0', os.getenv("ENGINE_PORT", "5000"))
