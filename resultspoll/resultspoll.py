@@ -54,6 +54,11 @@ while True:
         try:
             db = mongoClient['team-awesome']
             coll = db['situation_results']
+
+            body.setdefault('play_type','')
+            body.setdefault('direction','')
+            body.setdefault('distance','')
+            
             result = coll.insert_one (
                 {"sitID":body['situationid'],
                  "gameID":body['gameid'],
