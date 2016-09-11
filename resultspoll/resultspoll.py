@@ -48,24 +48,31 @@ while True:
         #get gameid as this is part of the sitID composite key
         #gameID = body['play_id'].rsplit('-', 1)[0]
 
-        db = mongoClient['team-awesome']
-        coll = db['situation_results']
-        result = coll.insert_one (
-            {"sitID":body['situationid'],
-             "gameID":body['gameid'],
-             "result": {
-                "action":body['play_type'],
-                "position":body['direction'],
-                "distance":body['distance']
-             }
-            }
-        )
-        print ("mongo result: ", result.inserted_id)
+        try:
+            db = mongoClient['team-awesome']
+            coll = db['situation_results']
+            result = coll.insert_one (
+                {"sitID":body['situationid'],
+                 "gameID":body['gameid'],
+                 "result": {
+                    "action":body['play_type'],
+                    "position":body['direction'],
+                    "distance":body['distance']
+                 }
+                }
+            )
+            print ("mongo result: ", result.inserted_id)
+
+        except:
+            print('There was an error posting to Mongo')
 
         #post the MongoDB id to the player-engine
-        payload = {"sitID":body['situationid'], "gameID":body['gameid']}
-        r = requests.post('http://playengine:5000/result', data=json.dumps(payload))
-        print ('Request sent to play_engine: ', r)
+        try:
+            payload = {"sitID":body['situationid'], "gameID":body['gameid']}
+            r = requests.post('http://playengine:5000/result', data=json.dumps(payload))
+            print ('Request sent to play_engine: ', r)
+        except:
+            print ('Could not send message to Play Engine')
 
     # if you don't receive any notifications the
     # messages_to_delete list will be empty

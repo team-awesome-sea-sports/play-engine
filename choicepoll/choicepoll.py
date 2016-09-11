@@ -45,15 +45,18 @@ while True:
         print ('Log -> Received content: ', body)
         db = mongoClient['team-awesome']
         coll = db['player_choices']
-        result = db.player_choices.insert_one (
-            {"sitID":body['situationid'],
-             "gameID":body['gameid'],
-             "playerID":body['playerid'],
-             "choice":body['choice']
-             }
-        )
-        print ("mongo result: ", result.inserted_id)
-
+        try:
+            result = db.player_choices.insert_one (
+                {"sitID":body['situationid'],
+                 "gameID":body['gameid'],
+                 "playerID":body['playerid'],
+                 "choice":body['choice']
+                 }
+            )
+            print ("mongo result: ", result.inserted_id)
+        except:
+            print ('There was an error posting to Mongo')
+            
     # if you don't receive any notifications the
     # messages_to_delete list will be empty
     if len(messages_to_delete) == 0:
