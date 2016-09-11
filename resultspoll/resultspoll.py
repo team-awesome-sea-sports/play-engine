@@ -63,16 +63,12 @@ while True:
             )
             print ("mongo result: ", result.inserted_id)
 
-        except:
-            print('There was an error posting to Mongo')
-
-        #post the MongoDB id to the player-engine
-        try:
             payload = {"sitID":body['situationid'], "gameID":body['gameid']}
             r = requests.post('http://playengine:5000/result', data=json.dumps(payload))
             print ('Request sent to play_engine: ', r)
+
         except:
-            print ('Could not send message to Play Engine')
+            print('There was an error posting to Mongo or the playengine')
 
     # if you don't receive any notifications the
     # messages_to_delete list will be empty
